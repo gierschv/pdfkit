@@ -14,6 +14,7 @@ class PDFReference extends stream.Writable
     @compress = @document.compress and not @data.Filter
     @uncompressedLength = 0
     @chunks = []
+    @chunksToCompress = []
     
   initDeflate: ->
     @data.Filter = 'FlateDecode'
@@ -34,7 +35,7 @@ class PDFReference extends stream.Writable
     
     if @compress
       @initDeflate() if not @deflate
-      @deflate.write chunk
+      @chunksToCompress.push(chunk)
     else
       @chunks.push chunk
       @data.Length += chunk.length
@@ -45,6 +46,7 @@ class PDFReference extends stream.Writable
     super
     
     if @deflate
+      @deflate.write(Buffer.concat(@chunksToCompress))
       @deflate.end()
     else
       @finalize()
